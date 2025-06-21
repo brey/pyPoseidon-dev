@@ -15,7 +15,7 @@ def to_3d(x, y, R=1):
 
 
 def to_stereo(x, y, R=1):
-    kx, ky, kz = to_3d(x, y, R)
+    kx, ky, kz = to_3d(x, y, R=R)
 
     # to 2D in stereo
     #    u = 2*R*kx/(R+kz)
