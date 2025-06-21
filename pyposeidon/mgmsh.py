@@ -442,6 +442,11 @@ def to_geo(df, **kwargs):
 
     if not df_.empty:
         rb0, land_lines, open_lines = outer_boundary(df, **kwargs)
+        
+        if not shapely.geometry.LinearRing(rb0[["lon", "lat"]].values).is_ccw:  # check for clockwise orientation
+            rb0_ = rb0.iloc[::-1].reset_index(drop=True)
+            rb0 = rb0_
+              
     else:
         rb0 = pd.DataFrame({})
         open_lines = {}
@@ -653,6 +658,13 @@ def to_geo(df, **kwargs):
 
         else:
             f.write("Background Field = 2;\n")
+
+        MeshSmoothRatio = kwargs.get("MeshSmoothRatio", 3)
+        MeshAnisoMax = kwargs.get("MeshAnisoMax", 1000)
+        
+        f.write(f"Mesh.SmoothRatio= {MeshSmoothRatio};\n")
+        f.write(f"Mesh.AnisoMax= {MeshAnisoMax};\n")
+
 
         MeshSizeMin = kwargs.get("MeshSizeMin", SizeMin)
         MeshSizeMax = kwargs.get("MeshSizeMax", SizeMax)
@@ -1002,6 +1014,12 @@ def make_gmsh(df, **kwargs):
     if MeshSizeMax is not None:
         gmsh.option.setNumber("Mesh.MeshSizeMax", MeshSizeMax)
 
+    MeshSmoothRatio = kwargs.get("MeshSmoothRatio", 3)
+    MeshAnisoMax = kwargs.get("MeshAnisoMax", 1000)
+        
+    gmsh.option.setNumber("Mesh.SmoothRatio", MeshSmoothRatio)
+    gmsh.option.setNumber("Mesh.AnisoMax", MeshAnisoMax)
+    
     logger.info("Executing gmsh")
 
     gmsh.option.set_number("General.Verbosity", 0)
@@ -1167,6 +1185,12 @@ def make_gmsh_3d(df, **kwargs):
         gmsh.option.setNumber("Mesh.MeshSizeMin", MeshSizeMin)
     if MeshSizeMax is not None:
         gmsh.option.setNumber("Mesh.MeshSizeMax", MeshSizeMax)
+        
+    MeshSmoothRatio = kwargs.get("MeshSmoothRatio", 3)
+    MeshAnisoMax = kwargs.get("MeshAnisoMax", 1000)
+        
+    gmsh.option.setNumber("Mesh.SmoothRatio", MeshSmoothRatio)
+    gmsh.option.setNumber("Mesh.AnisoMax", MeshAnisoMax)
 
     logger.info("Executing gmsh")
 
