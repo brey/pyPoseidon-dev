@@ -317,11 +317,18 @@ class tri2d:
         ili = -1
         lli = 1001
         for nl in range(nlb):
-            nn, etype = df.loc[idx, "data"].split("=")[0].strip().split(" ")
+            try:
+               nn, etype = df.loc[idx, "data"].split("=")[0].strip().split(" ")
+            except:
+               bline = "".join(df.loc[idx, "data"].split())
+               nn, etype = bline[:-1], bline[-1:]
             nn = int(nn)
             etype = int(etype)
-            label = df.loc[idx, "data"].split("=")[1]
-            label = label[label.index("land") :]
+            try:
+               label = df.loc[idx, "data"].split("=")[1]
+               label = label[label.index("land") :]
+            except:
+               label = f"{nl+1}"
             attr.append([nn, etype, label])
             nodes = df.loc[idx + 1 : idx + nn, "data"].astype(int)
             idx = idx + nn + 1
