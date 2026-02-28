@@ -1,4 +1,7 @@
 import numpy as np
+import pyproj
+
+NORTH_STEREO = pyproj.CRS("+proj=stere +lat_0=90 +lon_0=0 +ellps=sphere")
 
 # https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/Geo/gmshSurface.cpp#L88
 
@@ -58,3 +61,11 @@ def to_lat_lon(x, y, z=None, R=1):
     rlon = rlon * 180 / np.pi
 
     return rlon, rlat
+
+def _to_lat_lon(x,y):
+
+    p = pyproj.Proj(NORTH_STEREO)
+
+    u, v = p(x, y, inverse=True)
+
+    return u, v
