@@ -48,6 +48,7 @@ test_case = {
         "nspool": 9,
         "ihfskip": 36,
         "nhot_write": 108,
+        "wtiminc" : 400.0
     },
     "scribes": 1,
 }
@@ -75,6 +76,7 @@ check = {
         "nspool": 9,
         "ihfskip": 36,
         "nhot_write": 108,
+        "wtiminc" : 400.0
     },
     "scribes": 1,
 }
