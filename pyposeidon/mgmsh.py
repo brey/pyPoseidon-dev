@@ -442,11 +442,9 @@ def to_geo(df, **kwargs):
 
     if not df_.empty:
         rb0, land_lines, open_lines = outer_boundary(df, **kwargs)
-        
         if not shapely.geometry.LinearRing(rb0[["lon", "lat"]].values).is_ccw:  # check for clockwise orientation
             rb0_ = rb0.iloc[::-1].reset_index(drop=True)
             rb0 = rb0_
-              
     else:
         rb0 = pd.DataFrame({})
         open_lines = {}
@@ -653,7 +651,6 @@ def to_geo(df, **kwargs):
             flist = np.arange(2, ib + 1)
             f.write(f"Field[{ib+1}] = Min;\n")
             f.write(f"Field[{ib+1}].FieldsList = {{{', '.join(map(str,flist))}}};\n")
-
             f.write(f"Background Field = {ib+1};\n")
 
         else:
@@ -661,10 +658,9 @@ def to_geo(df, **kwargs):
 
         MeshSmoothRatio = kwargs.get("MeshSmoothRatio", 3)
         MeshAnisoMax = kwargs.get("MeshAnisoMax", 1000)
-        
+
         f.write(f"Mesh.SmoothRatio= {MeshSmoothRatio};\n")
         f.write(f"Mesh.AnisoMax= {MeshAnisoMax};\n")
-
 
         MeshSizeMin = kwargs.get("MeshSizeMin", SizeMin)
         MeshSizeMax = kwargs.get("MeshSizeMax", SizeMax)
@@ -1016,10 +1012,10 @@ def make_gmsh(df, **kwargs):
 
     MeshSmoothRatio = kwargs.get("MeshSmoothRatio", 3)
     MeshAnisoMax = kwargs.get("MeshAnisoMax", 1000)
-        
+
     gmsh.option.setNumber("Mesh.SmoothRatio", MeshSmoothRatio)
     gmsh.option.setNumber("Mesh.AnisoMax", MeshAnisoMax)
-    
+
     logger.info("Executing gmsh")
 
     gmsh.option.set_number("General.Verbosity", 0)
@@ -1073,7 +1069,7 @@ def make_gmsh_3d(df, **kwargs):
     tag += 1
     curve_tag += 1
 
-    for k, d in df.iterrows():
+    for k, d in tqdm(df.iterrows(), total=df.shape[0]):
         rb = pd.DataFrame(d.geometry.coords[:], columns=["lon", "lat"])
         rb["z"] = 1
         rb = rb.drop_duplicates(["lon", "lat"])
@@ -1185,16 +1181,19 @@ def make_gmsh_3d(df, **kwargs):
         gmsh.option.setNumber("Mesh.MeshSizeMin", MeshSizeMin)
     if MeshSizeMax is not None:
         gmsh.option.setNumber("Mesh.MeshSizeMax", MeshSizeMax)
-        
+
     MeshSmoothRatio = kwargs.get("MeshSmoothRatio", 3)
     MeshAnisoMax = kwargs.get("MeshAnisoMax", 1000)
-        
+
     gmsh.option.setNumber("Mesh.SmoothRatio", MeshSmoothRatio)
     gmsh.option.setNumber("Mesh.AnisoMax", MeshAnisoMax)
 
     logger.info("Executing gmsh")
 
-    gmsh.option.set_number("General.Verbosity", 0)
+    gmsh.option.set_number("General.Verbosity", 99)
+    gmsh.option.setNumber("Mesh.LcIntegrationPrecision", 1e-5)
+    gmsh.option.setNumber("Mesh.CharacteristicLengthFactor", 1)
+    gmsh.option.setNumber("Mesh.Smoothing", 100)
 
     gmsh.model.mesh.generate(3)
 
