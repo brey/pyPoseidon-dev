@@ -190,7 +190,7 @@ class Schism:
 
     def config(self, config_file=None, output=False, **kwargs):
         dic = get_value(self, kwargs, "parameters", None)
-        #        param_file = get_value(self,kwargs,'config_file',None)
+        param_file = get_value(self,kwargs,'config_file',None)
 
         if config_file:
             # ---------------------------------------------------------------------
@@ -997,7 +997,7 @@ class Schism:
                 f,
                 skiprows=nels[0] + nq[0] + nw[0] + 8,
                 header=None,
-                nrows=2,
+                nrows=h1["nvrt"].values[0],
                 sep="\s+",
             )
 
@@ -1013,7 +1013,7 @@ class Schism:
             with open(gfiles[i], "r") as f:
                 gframes[i] = pd.read_csv(
                     f,
-                    skiprows=nels[i] + nq[i] + nw[i] + 11,
+                    skiprows=nels[i] + nq[i] + nw[i] + 9 + h1["nvrt"].values[0],
                     header=None,
                     nrows=nq[i],
                     sep="\s+",
@@ -1041,7 +1041,7 @@ class Schism:
             with open(gfiles[i], "r") as f:
                 eframes[i] = pd.read_csv(
                     f,
-                    skiprows=nels[i] + nq[i] + nw[i] + nq[i] + 11,
+                    skiprows=nels[i] + nq[i] + nw[i] + nq[i] + 9 + h1["nvrt"].values[0],
                     header=None,
                     nrows=nels[i],
                     sep="\s+",
@@ -1919,8 +1919,8 @@ class Schism:
             df.columns.name = vals.loc[idx, "variable"]
             # deal with schism bug
             ns = np.arange(1, df.shape[0] + 1)
-            df.index = pd.to_datetime(dstamp) + pd.to_timedelta(ns * dt, unit="S")
-            #            df.index = pd.to_datetime(dstamp) + pd.to_timedelta(df.index, unit="S")
+            df.index = pd.to_datetime(dstamp) + pd.to_timedelta(ns * dt, unit="s")
+            #            df.index = pd.to_datetime(dstamp) + pd.to_timedelta(df.index, unit="s")
             pindex = pd.MultiIndex.from_product([df.T.columns, df.T.index])
 
             r = pd.DataFrame(df.values.flatten(), index=pindex, columns=[vals.loc[idx, "variable"]])
