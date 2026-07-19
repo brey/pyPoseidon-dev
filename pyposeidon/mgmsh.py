@@ -49,7 +49,7 @@ def get_ibounds(df, mm):
 
     for row in tqdm(df.itertuples(index=True, name="Pandas"), total=df.shape[0], disable=disable):
         inodes, xyz = mm.getNodesForPhysicalGroup(dim=getattr(row, "dim"), tag=getattr(row, "tag"))
-        db = pd.DataFrame({"node": inodes - 1})
+        db = pd.DataFrame({"bnode": inodes - 1})
         db["type"] = "island"
         db["id"] = -(getattr(row, "Index") + 1)
 
@@ -96,7 +96,7 @@ def read_msh(filename, **kwargs):
     for row in obs.itertuples(index=True, name="Pandas"):
         onodes, xyz = gmsh.model.mesh.getNodesForPhysicalGroup(dim=getattr(row, "dim"), tag=getattr(row, "tag"))
 
-        db = pd.DataFrame({"node": onodes - 1})
+        db = pd.DataFrame({"bnode": onodes - 1})
         db["type"] = "open"
         db["id"] = getattr(row, "Index") + 1
 
@@ -112,7 +112,7 @@ def read_msh(filename, **kwargs):
     for row in lbs.itertuples(index=True, name="Pandas"):
         lnodes, xyz = gmsh.model.mesh.getNodesForPhysicalGroup(dim=getattr(row, "dim"), tag=getattr(row, "tag"))
 
-        db = pd.DataFrame({"node": lnodes - 1})
+        db = pd.DataFrame({"bnode": lnodes - 1})
         db["type"] = "land"
         db["id"] = 1000 + (getattr(row, "Index") + 1)
 
@@ -144,7 +144,7 @@ def read_msh(filename, **kwargs):
 
         bnodes.index.name = "bnodes"
 
-        bnodes = bnodes.drop_duplicates("node")
+        bnodes = bnodes.drop_duplicates("bnode")
 
         bnodes["id"] = bnodes.id.astype(int)
 
@@ -158,7 +158,7 @@ def read_msh(filename, **kwargs):
             bnodes["type"] = "island"  # Fix for binary run and GLOBAL. CHECK
             bnodes["id"] = [-i if i > 0 else i for i in bnodes.id.values]
 
-        bnodes = bnodes.sort_values(["type", "id", "node"]).reset_index(drop=True)  # sort
+        bnodes = bnodes.sort_values(["type", "id", "bnode"]).reset_index(drop=True)  # sort
         bnodes.index.name = "bnodes"
 
         # check orientation
@@ -1229,14 +1229,14 @@ def make_gmsh_3d(df, **kwargs):
 
         bnodes.index.name = "bnodes"
 
-        bnodes = bnodes.drop_duplicates("node")
+        bnodes = bnodes.drop_duplicates("bnode")
 
         bnodes["id"] = bnodes.id.astype(int)
 
     else:
         bnodes = pd.DataFrame({})
 
-    bnodes = bnodes.sort_values(["id", "node"]).reset_index(drop=True)  # sort
+    bnodes = bnodes.sort_values(["id", "bnode"]).reset_index(drop=True)  # sort
     bnodes.index.name = "bnodes"
 
     # check orientation

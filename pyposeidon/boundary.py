@@ -556,9 +556,9 @@ def global_tag(geo, cbuffer, blevels, R=1):
     else:
         ca = geo.loc[indx]
 
-    #check ca
+    # check ca
     ca = fix_ca(ca)
-    
+
     # PUT ALL TOGETHER
     geo = pd.concat([w1, w2, gw, ca], ignore_index=True).reset_index(drop=True)
 
@@ -598,98 +598,86 @@ def global_tag(geo, cbuffer, blevels, R=1):
     geo = inter_fix(geo)
 
     return geo.loc[~geo.is_empty]
-    
+
 
 def fix_ca(gdf):
-    
-    sj = gp.sjoin(gdf, gdf,
-                       how="inner",
-                       predicate="intersects",
-                       lsuffix="left",
-                       rsuffix="right")
 
-    invs = sj.drop_duplicates(subset=['geometry']).reset_index()
-    
+    sj = gp.sjoin(gdf, gdf, how="inner", predicate="intersects", lsuffix="left", rsuffix="right")
+
+    invs = sj.drop_duplicates(subset=["geometry"]).reset_index()
+
     if not invs.empty:
-    
+
         gdf_ = gp.GeoSeries(shapely.Polygon(invs.geometry[0]))
-    
+
         gdf = gp.GeoDataFrame(geometry=gdf_.buffer(0).boundary)
-        
+
     return gdf
-        
-    
+
+
 def inter_fix(gdf):
-    
-    ia = gdf.loc[gdf.length==gdf.length.max()].index[0] # antarctica
-    
-    sj = gp.sjoin(gdf, gdf,
-                       how="inner",
-                       predicate="intersects",
-                       lsuffix="left",
-                       rsuffix="right")
+
+    ia = gdf.loc[gdf.length == gdf.length.max()].index[0]  # antarctica
+
+    sj = gp.sjoin(gdf, gdf, how="inner", predicate="intersects", lsuffix="left", rsuffix="right")
 
     sj = sj[sj.index != sj.index_right]
 
+    invs = sj.drop_duplicates(subset=["geometry"]).reset_index()
 
-    invs = sj.drop_duplicates(subset=['geometry']).reset_index()
-    
     irs = invs.index
-    
+
     if not invs.empty:
-        
-        iis = invs["index"].values # save index
+
+        iis = invs["index"].values  # save index
         all_geoms = []
-    
+
         if ia in iis:
-    
-            ii = invs.loc[invs.length==invs.length.max()].index[0]
-    
+
+            ii = invs.loc[invs.length == invs.length.max()].index[0]
+
             block = gp.GeoSeries(polygonize(invs.iloc[[ii]].geometry))
-    
+
             grp = shapely.geometry.Polygon([(-25, -10), (-25, 20), (25, 20), (25, -10)])
-        
+
             g = block.union_all().symmetric_difference(grp)  # get the diff
-    
+
             out = gp.GeoDataFrame(geometry=[g])
 
             all_geoms.append(out)
-       
+
             irs = [k for k in irs if k != ii]
-    
+
         rest = gp.GeoDataFrame(geometry=gp.GeoSeries(polygonize(invs.iloc[irs].geometry)))
 
         all_geoms.append(rest)
-        
+
         mm = pd.concat(all_geoms, ignore_index=True).reset_index(drop=True)
-    
+
         mmg = gp.GeoDataFrame(mm)
-    
+
         smmg = gp.GeoDataFrame(geometry=[mmg.union_all()]).explode().reset_index(drop=True)
-        
-        sbuf= gp.GeoDataFrame(geometry=smmg.geometry.buffer(0.000001).buffer(-0.000001)).boundary.explode().reset_index(drop=True)
+
+        sbuf = (
+            gp.GeoDataFrame(geometry=smmg.geometry.buffer(0.000001).buffer(-0.000001))
+            .boundary.explode()
+            .reset_index(drop=True)
+        )
 
         remove_outer_mask = gp.GeoDataFrame(geometry=gp.GeoSeries(polygonize(sbuf))).area
-    
-        new_geoms = sbuf.loc[remove_outer_mask!=remove_outer_mask.max()]
-        
+
+        new_geoms = sbuf.loc[remove_outer_mask != remove_outer_mask.max()]
+
         new_geoms = gp.GeoDataFrame(geometry=new_geoms)
-        
+
         new_geoms["tag"] = "island"
         new_geoms["length"] = new_geoms["geometry"][:].length
-        
-        #drop offensive
+
+        # drop offensive
         geo_ = gdf.drop(iis)
-    
+
         geo_.crs = None
-    
-        gdf = pd.concat([geo_, new_geoms], ignore_index=True).reset_index(drop=True)        
-    
+
+        gdf = pd.concat([geo_, new_geoms], ignore_index=True).reset_index(drop=True)
+
     return gdf
-        
-        
-        
-        
-        
-        
-    

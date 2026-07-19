@@ -190,7 +190,7 @@ class Schism:
 
     def config(self, config_file=None, output=False, **kwargs):
         dic = get_value(self, kwargs, "parameters", None)
-        param_file = get_value(self,kwargs,'config_file',None)
+        param_file = get_value(self, kwargs, "config_file", None)
 
         if config_file:
             # ---------------------------------------------------------------------
@@ -371,7 +371,7 @@ class Schism:
 
         # Save meteo netcdf to disk
         m_index = kwargs.get("m_index", 1)
-        filename = kwargs.get("filename", f"sflux_air_{m_index}.0001.nc")
+        filename = kwargs.get("filename", f"sflux_air_{m_index}.1.nc")
         netcdf_path = os.path.join(sflux_path, filename)
         sout.to_netcdf(netcdf_path)
 
@@ -451,7 +451,7 @@ class Schism:
             logger.info("no dem available\n")
 
         # Mesh
-        self.mesh = pmesh.set(type="tri2d", **kwargs)
+        self.mesh = pmesh.set(type="schism", **kwargs)
 
         # set lat/lon from file
         if self.mesh.Dataset is not None:
@@ -506,7 +506,7 @@ class Schism:
         # Mesh related files
         if self.mesh.Dataset is not None:
             # save bctides.in
-            bs = self.mesh.Dataset[["node", "id", "type"]].to_dataframe()
+            bs = self.mesh.Dataset[["bnode", "id", "type"]].to_dataframe()
             # open boundaries
             number_of_open_boundaries = bs.loc[bs.type == "open"].id
             if not number_of_open_boundaries.empty:
@@ -521,7 +521,7 @@ class Schism:
                 f.write("{}\n".format(0))  # nbfr
                 f.write("{}\n".format(number_of_open_boundaries))  # number of open boundaries
                 for i in range(1, number_of_open_boundaries + 1):
-                    nnodes = bs.loc[bs.id == i, "node"].shape[0]
+                    nnodes = bs.loc[bs.id == i, "bnode"].shape[0]
                     f.write(
                         "{} {} {} {} {}\n".format(nnodes, 2, 0, 0, 0)
                     )  # number of nodes on the open boundary segment j (corresponding to hgrid.gr3), B.C. flags for elevation, velocity, temperature, and salinity
@@ -646,7 +646,7 @@ class Schism:
             try:
                 if split_by:
                     times, datasets = zip(*self.meteo.Dataset.resample(time=f"{split_by}"))
-                    mpaths = ["sflux_air_{}.{:04d}.nc".format(m_index, t + 1) for t in np.arange(len(times))]
+                    mpaths = ["sflux_air_{}.{:d}.nc".format(m_index, t + 1) for t in np.arange(len(times))]
                     for das, mpath in list(zip(datasets, mpaths)):
                         self.to_force(
                             das, vars=["msl", "u10", "v10"], rpath=path, filename=mpath, date=self.rdate, **kwargs
@@ -793,7 +793,7 @@ class Schism:
 
         if load_mesh:
             try:
-                self.mesh = pmesh.set(type="tri2d", mesh_file=hfile)
+                self.mesh = pmesh.set(type="schism", mesh_file=hfile)
             except:
                 logger.warning("loading mesh failed")
                 pass

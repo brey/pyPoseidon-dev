@@ -255,7 +255,7 @@ class D3DCast:
 class SchismCast:
     files = [
         "launchSchism.sh",
-#       "sflux/sflux_inputs.txt",
+        #       "sflux/sflux_inputs.txt",
         "outputs/flux.out",
     ]
 
@@ -278,7 +278,6 @@ class SchismCast:
         "diffmin.gr3",
         "albedo.gr3",
         "watertype.gr3",
-
     ]
 
     station_files = [
